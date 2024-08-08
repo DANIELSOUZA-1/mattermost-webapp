@@ -12,7 +12,8 @@
     "cypress",
     "no-only-tests",
     "@typescript-eslint",
-    "formatjs"
+    "formatjs",
+    "complexity"
   ],
   "parser": "@typescript-eslint/parser",
   "env": {
@@ -89,7 +90,8 @@
       ]
     }],
     "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
-    "formatjs/no-multiple-whitespaces": ["error"]
+    "formatjs/no-multiple-whitespaces": ["error"],
+    "complexity": ["error", { "max": 10 }]
   },
   "overrides": [
     {

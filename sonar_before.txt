@@ -1,0 +1,19 @@
+INFO: Scanner configuration file: C:\Users\Daniel\AppData\Local\npm-cache\_npx\4c634e31006915c7\node_modules\sonar-scanner\bin\..\conf\sonar-scanner.properties
+INFO: Project root configuration file: NONE
+INFO: SonarQube Scanner 3.1.0.1141
+INFO: Java 17.0.9 Oracle Corporation (64-bit)
+INFO: Windows 10 10.0 amd64
+INFO: User cache: C:\Users\Daniel\.sonar\cache
+INFO: SonarQube server 10.6.0.92116
+INFO: Default locale: "pt_BR", source code encoding: "windows-1252" (analysis is platform dependent)
+INFO: Load global settings
+INFO: Load global settings (done) | time=47ms
+INFO: Server id: 147B411E-AZEubSPtN0Eykh1zdVX-
+INFO: Loading required plugins
+INFO: Load plugins index
+INFO: ------------------------------------------------------------------------
+INFO: EXECUTION FAILURE
+INFO: ------------------------------------------------------------------------
+INFO: Total time: 0.778s
+INFO: Final Memory: 5M/48M
+INFO: ------------------------------------------------------------------------

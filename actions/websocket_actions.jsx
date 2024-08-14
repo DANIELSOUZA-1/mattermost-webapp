@@ -829,83 +829,110 @@ export function handleUserRemovedEvent(msg) {
     const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
 
     if (msg.broadcast.user_id === currentUser.id) {
-        dispatch(loadChannelsForCurrentUser());
-
-        const rhsChannelId = getSelectedChannelId(state);
-        if (msg.data.channel_id === rhsChannelId) {
-            dispatch(closeRightHandSide());
-        }
-
-        if (msg.data.channel_id === currentChannel.id) {
-            if (msg.data.remover_id !== msg.broadcast.user_id) {
-                const user = getUser(state, msg.data.remover_id);
-                if (!user) {
-                    dispatch(loadUser(msg.data.remover_id));
-                }
-
-                dispatch(openModal({
-                    modalId: ModalIdentifiers.REMOVED_FROM_CHANNEL,
-                    dialogType: RemovedFromChannelModal,
-                    dialogProps: {
-                        channelName: currentChannel.display_name,
-                        removerId: msg.data.remover_id,
-                    },
-                }));
-            }
-        }
-
-        const channel = getChannel(state, msg.data.channel_id);
-
-        dispatch({
-            type: ChannelTypes.LEAVE_CHANNEL,
-            data: {
-                id: msg.data.channel_id,
-                user_id: msg.broadcast.user_id,
-                team_id: channel?.team_id,
-            },
-        });
-
-        if (msg.data.channel_id === currentChannel.id) {
-            redirectUserToDefaultTeam();
-        }
-
-        if (isGuest(currentUser.roles)) {
-            dispatch(removeNotVisibleUsers());
-        }
+        handleCurrentUserRemoved(state, msg, currentChannel, currentUser);
     } else if (msg.broadcast.channel_id === currentChannel.id) {
-        dispatch(getChannelStats(currentChannel.id));
-        dispatch({
-            type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
-            data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
-        });
-        if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
-            dispatch(getChannelMemberCountsByGroup(currentChannel.id, isTimezoneEnabled));
-        }
+        handleChannelUserRemoved(state, msg, currentChannel, config, license, isTimezoneEnabled);
     }
 
     if (msg.broadcast.user_id !== currentUser.id) {
-        const channel = getChannel(state, msg.broadcast.channel_id);
-        const members = getChannelMembersInChannels(state);
-        const isMember = Object.values(members).some((member) => member[msg.data.user_id]);
-        if (channel && isGuest(currentUser.roles) && !isMember) {
-            const actions = [
-                {
-                    type: UserTypes.PROFILE_NO_LONGER_VISIBLE,
-                    data: {user_id: msg.data.user_id},
-                },
-                {
-                    type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
-                    data: {team_id: channel.team_id, user_id: msg.data.user_id},
-                },
-            ];
-            dispatch(batchActions(actions));
-        }
+        handleNonCurrentUserRemoved(state, msg, currentUser);
     }
 
+    handlePermissions(state, msg);
+}
+
+function handleCurrentUserRemoved(state, msg, currentChannel, currentUser) {
+    dispatch(loadChannelsForCurrentUser());
+    const rhsChannelId = getSelectedChannelId(state);
+
+    if (msg.data.channel_id === rhsChannelId) {
+        dispatch(closeRightHandSide());
+    }
+
+    if (msg.data.channel_id === currentChannel.id) {
+        handleChannelRemovalModal(state, msg, currentChannel);
+    }
+
+    const channel = getChannel(state, msg.data.channel_id);
+    dispatch({
+        type: ChannelTypes.LEAVE_CHANNEL,
+        data: {
+            id: msg.data.channel_id,
+            user_id: msg.broadcast.user_id,
+            team_id: channel?.team_id,
+        },
+    });
+
+    if (msg.data.channel_id === currentChannel.id) {
+        redirectUserToDefaultTeam();
+    }
+
+    if (isGuest(currentUser.roles)) {
+        dispatch(removeNotVisibleUsers());
+    }
+}
+
+function handleChannelRemovalModal(state, msg, currentChannel) {
+    if (msg.data.remover_id !== msg.broadcast.user_id) {
+        const user = getUser(state, msg.data.remover_id);
+
+        if (!user) {
+            dispatch(loadUser(msg.data.remover_id));
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.REMOVED_FROM_CHANNEL,
+            dialogType: RemovedFromChannelModal,
+            dialogProps: {
+                channelName: currentChannel.display_name,
+                removerId: msg.data.remover_id,
+            },
+        }));
+    }
+}
+
+function handleChannelUserRemoved(state, msg, currentChannel, config, license, isTimezoneEnabled) {
+    dispatch(getChannelStats(currentChannel.id));
+    dispatch({
+        type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
+        data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
+    });
+
+    if (license?.IsLicensed === 'true' &&
+        license?.LDAPGroups === 'true' &&
+        config.EnableConfirmNotificationsToChannel === 'true') {
+        dispatch(getChannelMemberCountsByGroup(currentChannel.id, isTimezoneEnabled));
+    }
+}
+
+function handleNonCurrentUserRemoved(state, msg, currentUser) {
+    const channel = getChannel(state, msg.broadcast.channel_id);
+    const members = getChannelMembersInChannels(state);
+    const isMember = Object.values(members).some((member) => member[msg.data.user_id]);
+
+    if (channel && isGuest(currentUser.roles) && !isMember) {
+        const actions = [
+            {
+                type: UserTypes.PROFILE_NO_LONGER_VISIBLE,
+                data: {user_id: msg.data.user_id},
+            },
+            {
+                type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
+                data: {team_id: channel.team_id, user_id: msg.data.user_id},
+            },
+        ];
+        dispatch(batchActions(actions));
+    }
+}
+
+function handlePermissions(state, msg) {
     const channelId = msg.broadcast.channel_id || msg.data.channel_id;
     const userId = msg.broadcast.user_id || msg.data.user_id;
     const channel = getChannel(state, channelId);
-    if (channel && !haveISystemPermission(state, {permission: Permissions.VIEW_MEMBERS}) && !haveITeamPermission(state, channel.team_id, Permissions.VIEW_MEMBERS)) {
+
+    if (channel && 
+        !haveISystemPermission(state, {permission: Permissions.VIEW_MEMBERS}) &&
+        !haveITeamPermission(state, channel.team_id, Permissions.VIEW_MEMBERS)) {
         dispatch(batchActions([
             {
                 type: UserTypes.RECEIVED_PROFILE_NOT_IN_TEAM,
@@ -918,6 +945,7 @@ export function handleUserRemovedEvent(msg) {
         ]));
     }
 }
+
 
 export async function handleUserUpdatedEvent(msg) {
     // This websocket event is sent to all non-guest users on the server, so be careful requesting data from the server

@@ -147,73 +147,17 @@ function genSkinVariations(emoji) {
 }
 
 function trimPropertiesFromEmoji(emoji) {
-    if (emoji.hasOwnProperty('non_qualified')) {
-        Reflect.deleteProperty(emoji, 'non_qualified');
-    }
+    const propertiesToRemove = [
+        'non_qualified', 'docomo', 'au', 'softbank', 'google', 'sheet_x', 'sheet_y',
+        'added_in', 'has_img_apple', 'has_img_google', 'has_img_twitter', 'has_img_facebook',
+        'source_index', 'sort_order', 'subcategory', 'image', 'fileName'
+    ];
 
-    if (emoji.hasOwnProperty('docomo')) {
-        Reflect.deleteProperty(emoji, 'docomo');
-    }
-
-    if (emoji.hasOwnProperty('au')) {
-        Reflect.deleteProperty(emoji, 'au');
-    }
-
-    if (emoji.hasOwnProperty('softbank')) {
-        Reflect.deleteProperty(emoji, 'softbank');
-    }
-
-    if (emoji.hasOwnProperty('google')) {
-        Reflect.deleteProperty(emoji, 'google');
-    }
-
-    if (emoji.hasOwnProperty('sheet_x')) {
-        Reflect.deleteProperty(emoji, 'sheet_x');
-    }
-
-    if (emoji.hasOwnProperty('sheet_y')) {
-        Reflect.deleteProperty(emoji, 'sheet_y');
-    }
-
-    if (emoji.hasOwnProperty('added_in')) {
-        Reflect.deleteProperty(emoji, 'added_in');
-    }
-
-    if (emoji.hasOwnProperty('has_img_apple')) {
-        Reflect.deleteProperty(emoji, 'has_img_apple');
-    }
-
-    if (emoji.hasOwnProperty('has_img_google')) {
-        Reflect.deleteProperty(emoji, 'has_img_google');
-    }
-
-    if (emoji.hasOwnProperty('has_img_twitter')) {
-        Reflect.deleteProperty(emoji, 'has_img_twitter');
-    }
-
-    if (emoji.hasOwnProperty('has_img_facebook')) {
-        Reflect.deleteProperty(emoji, 'has_img_facebook');
-    }
-
-    if (emoji.hasOwnProperty('source_index')) {
-        Reflect.deleteProperty(emoji, 'source_index');
-    }
-
-    if (emoji.hasOwnProperty('sort_order')) {
-        Reflect.deleteProperty(emoji, 'sort_order');
-    }
-
-    if (emoji.hasOwnProperty('subcategory')) {
-        Reflect.deleteProperty(emoji, 'subcategory');
-    }
-
-    if (emoji.hasOwnProperty('image')) {
-        Reflect.deleteProperty(emoji, 'image');
-    }
-
-    if (emoji.hasOwnProperty('fileName')) {
-        Reflect.deleteProperty(emoji, 'fileName');
-    }
+    propertiesToRemove.forEach(property => {
+        if (emoji.hasOwnProperty(property)) {
+            Reflect.deleteProperty(emoji, property);
+        }
+    });
 
     return emoji;
 }

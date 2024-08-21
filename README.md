@@ -5,3 +5,5 @@
 All changes going forward should be made in the monorepo since we're no longer accepting PRs in this repository, and any existing PRs should be resubmitted over there. We have some notes on how to do that migration [here](https://developers.mattermost.com/contribute/monorepo-migration-notes/), but most of the code that was previously in this repository is now located in either [`webapp/channels`](https://github.com/mattermost/mattermost-server/tree/master/webapp/channels) or [`webapp/platform`](https://github.com/mattermost/mattermost-server/tree/master/webapp/platform) in the monorepo. We were unable to maintain Git history with the move, so migrating PRs to the new repo will likely involve a lot of manually copying changes to their new locations.
 
 This repository is being kept open until December 2023 to maintain support for our [extended support releases](https://docs.mattermost.com/upgrade/extended-support-release.html) at which point it will be archived and kept as a historical record.
+
+trigger commit

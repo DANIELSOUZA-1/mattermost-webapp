@@ -321,282 +321,93 @@ function handleClose(failCount) {
     ]));
 }
 
+const eventHandlers = {
+    [SocketEvents.POSTED]: handleNewPostEventDebounced,
+    [SocketEvents.EPHEMERAL_MESSAGE]: handleNewPostEventDebounced,
+    [SocketEvents.POST_EDITED]: handlePostEditEvent,
+    [SocketEvents.POST_DELETED]: handlePostDeleteEvent,
+    [SocketEvents.POST_UNREAD]: handlePostUnreadEvent,
+    [SocketEvents.LEAVE_TEAM]: handleLeaveTeamEvent,
+    [SocketEvents.UPDATE_TEAM]: handleUpdateTeamEvent,
+    [SocketEvents.UPDATE_TEAM_SCHEME]: handleUpdateTeamSchemeEvent,
+    [SocketEvents.DELETE_TEAM]: handleDeleteTeamEvent,
+    [SocketEvents.ADDED_TO_TEAM]: handleTeamAddedEvent,
+    [SocketEvents.USER_ADDED]: (msg) => dispatch(handleUserAddedEvent(msg)),
+    [SocketEvents.USER_REMOVED]: handleUserRemovedEvent,
+    [SocketEvents.USER_UPDATED]: handleUserUpdatedEvent,
+    [SocketEvents.ROLE_ADDED]: handleRoleAddedEvent,
+    [SocketEvents.ROLE_REMOVED]: handleRoleRemovedEvent,
+    [SocketEvents.CHANNEL_SCHEME_UPDATED]: handleChannelSchemeUpdatedEvent,
+    [SocketEvents.MEMBERROLE_UPDATED]: handleUpdateMemberRoleEvent,
+    [SocketEvents.ROLE_UPDATED]: handleRoleUpdatedEvent,
+    [SocketEvents.CHANNEL_CREATED]: (msg) => dispatch(handleChannelCreatedEvent(msg)),
+    [SocketEvents.CHANNEL_DELETED]: handleChannelDeletedEvent,
+    [SocketEvents.CHANNEL_UNARCHIVED]: handleChannelUnarchivedEvent,
+    [SocketEvents.CHANNEL_CONVERTED]: handleChannelConvertedEvent,
+    [SocketEvents.CHANNEL_UPDATED]: (msg) => dispatch(handleChannelUpdatedEvent(msg)),
+    [SocketEvents.CHANNEL_MEMBER_UPDATED]: handleChannelMemberUpdatedEvent,
+    [SocketEvents.DIRECT_ADDED]: (msg) => dispatch(handleDirectAddedEvent(msg)),
+    [SocketEvents.GROUP_ADDED]: (msg) => dispatch(handleGroupAddedEvent(msg)),
+    [SocketEvents.PREFERENCE_CHANGED]: handlePreferenceChangedEvent,
+    [SocketEvents.PREFERENCES_CHANGED]: handlePreferencesChangedEvent,
+    [SocketEvents.PREFERENCES_DELETED]: handlePreferencesDeletedEvent,
+    [SocketEvents.STATUS_CHANGED]: handleStatusChangedEvent,
+    [SocketEvents.HELLO]: handleHelloEvent,
+    [SocketEvents.REACTION_ADDED]: handleReactionAddedEvent,
+    [SocketEvents.REACTION_REMOVED]: handleReactionRemovedEvent,
+    [SocketEvents.EMOJI_ADDED]: handleAddEmoji,
+    [SocketEvents.CHANNEL_VIEWED]: handleChannelViewedEvent,
+    [SocketEvents.PLUGIN_ENABLED]: handlePluginEnabled,
+    [SocketEvents.PLUGIN_DISABLED]: handlePluginDisabled,
+    [SocketEvents.USER_ROLE_UPDATED]: handleUserRoleUpdated,
+    [SocketEvents.CONFIG_CHANGED]: handleConfigChanged,
+    [SocketEvents.LICENSE_CHANGED]: handleLicenseChanged,
+    [SocketEvents.PLUGIN_STATUSES_CHANGED]: handlePluginStatusesChangedEvent,
+    [SocketEvents.OPEN_DIALOG]: handleOpenDialogEvent,
+    [SocketEvents.RECEIVED_GROUP]: handleGroupUpdatedEvent,
+    [SocketEvents.GROUP_MEMBER_ADD]: (msg) => dispatch(handleGroupAddedMemberEvent(msg)),
+    [SocketEvents.GROUP_MEMBER_DELETED]: (msg) => dispatch(handleGroupDeletedMemberEvent(msg)),
+    [SocketEvents.RECEIVED_GROUP_ASSOCIATED_TO_TEAM]: handleGroupAssociatedToTeamEvent,
+    [SocketEvents.RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM]: handleGroupNotAssociatedToTeamEvent,
+    [SocketEvents.RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL]: handleGroupAssociatedToChannelEvent,
+    [SocketEvents.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL]: handleGroupNotAssociatedToChannelEvent,
+    [SocketEvents.WARN_METRIC_STATUS_RECEIVED]: handleWarnMetricStatusReceivedEvent,
+    [SocketEvents.WARN_METRIC_STATUS_REMOVED]: handleWarnMetricStatusRemovedEvent,
+    [SocketEvents.SIDEBAR_CATEGORY_CREATED]: (msg) => dispatch(handleSidebarCategoryCreated(msg)),
+    [SocketEvents.SIDEBAR_CATEGORY_UPDATED]: (msg) => dispatch(handleSidebarCategoryUpdated(msg)),
+    [SocketEvents.SIDEBAR_CATEGORY_DELETED]: (msg) => dispatch(handleSidebarCategoryDeleted(msg)),
+    [SocketEvents.SIDEBAR_CATEGORY_ORDER_UPDATED]: (msg) => dispatch(handleSidebarCategoryOrderUpdated(msg)),
+    [SocketEvents.USER_ACTIVATION_STATUS_CHANGED]: () => dispatch(handleUserActivationStatusChange()),
+    [SocketEvents.CLOUD_PAYMENT_STATUS_UPDATED]: (msg) => dispatch(handleCloudPaymentStatusUpdated(msg)),
+    [SocketEvents.CLOUD_SUBSCRIPTION_CHANGED]: (msg) => dispatch(handleCloudSubscriptionChanged(msg)),
+    [SocketEvents.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED]: handleFirstAdminVisitMarketplaceStatusReceivedEvent,
+    [SocketEvents.THREAD_FOLLOW_CHANGED]: (msg) => dispatch(handleThreadFollowChanged(msg)),
+    [SocketEvents.THREAD_READ_CHANGED]: (msg) => dispatch(handleThreadReadChanged(msg)),
+    [SocketEvents.THREAD_UPDATED]: (msg) => dispatch(handleThreadUpdated(msg)),
+    [SocketEvents.APPS_FRAMEWORK_REFRESH_BINDINGS]: () => dispatch(handleRefreshAppsBindings()),
+    [SocketEvents.APPS_FRAMEWORK_PLUGIN_ENABLED]: () => dispatch(handleAppsPluginEnabled()),
+    [SocketEvents.APPS_FRAMEWORK_PLUGIN_DISABLED]: () => dispatch(handleAppsPluginDisabled()),
+    [SocketEvents.POST_ACKNOWLEDGEMENT_ADDED]: (msg) => dispatch(handlePostAcknowledgementAdded(msg)),
+    [SocketEvents.POST_ACKNOWLEDGEMENT_REMOVED]: (msg) => dispatch(handlePostAcknowledgementRemoved(msg)),
+    [SocketEvents.DRAFT_CREATED]: (msg) => dispatch(handleUpsertDraftEvent(msg)),
+    [SocketEvents.DRAFT_UPDATED]: (msg) => dispatch(handleUpsertDraftEvent(msg)),
+    [SocketEvents.DRAFT_DELETED]: (msg) => dispatch(handleDeleteDraftEvent(msg)),
+    [SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED]: (msg) => dispatch(handleHostedCustomerSignupProgressUpdated(msg)),
+};
+
 export function handleEvent(msg) {
-    switch (msg.event) {
-    case SocketEvents.POSTED:
-    case SocketEvents.EPHEMERAL_MESSAGE:
-        handleNewPostEventDebounced(msg);
-        break;
-
-    case SocketEvents.POST_EDITED:
-        handlePostEditEvent(msg);
-        break;
-
-    case SocketEvents.POST_DELETED:
-        handlePostDeleteEvent(msg);
-        break;
-
-    case SocketEvents.POST_UNREAD:
-        handlePostUnreadEvent(msg);
-        break;
-
-    case SocketEvents.LEAVE_TEAM:
-        handleLeaveTeamEvent(msg);
-        break;
-
-    case SocketEvents.UPDATE_TEAM:
-        handleUpdateTeamEvent(msg);
-        break;
-
-    case SocketEvents.UPDATE_TEAM_SCHEME:
-        handleUpdateTeamSchemeEvent(msg);
-        break;
-
-    case SocketEvents.DELETE_TEAM:
-        handleDeleteTeamEvent(msg);
-        break;
-
-    case SocketEvents.ADDED_TO_TEAM:
-        handleTeamAddedEvent(msg);
-        break;
-
-    case SocketEvents.USER_ADDED:
-        dispatch(handleUserAddedEvent(msg));
-        break;
-
-    case SocketEvents.USER_REMOVED:
-        handleUserRemovedEvent(msg);
-        break;
-
-    case SocketEvents.USER_UPDATED:
-        handleUserUpdatedEvent(msg);
-        break;
-
-    case SocketEvents.ROLE_ADDED:
-        handleRoleAddedEvent(msg);
-        break;
-
-    case SocketEvents.ROLE_REMOVED:
-        handleRoleRemovedEvent(msg);
-        break;
-
-    case SocketEvents.CHANNEL_SCHEME_UPDATED:
-        handleChannelSchemeUpdatedEvent(msg);
-        break;
-
-    case SocketEvents.MEMBERROLE_UPDATED:
-        handleUpdateMemberRoleEvent(msg);
-        break;
-
-    case SocketEvents.ROLE_UPDATED:
-        handleRoleUpdatedEvent(msg);
-        break;
-
-    case SocketEvents.CHANNEL_CREATED:
-        dispatch(handleChannelCreatedEvent(msg));
-        break;
-
-    case SocketEvents.CHANNEL_DELETED:
-        handleChannelDeletedEvent(msg);
-        break;
-
-    case SocketEvents.CHANNEL_UNARCHIVED:
-        handleChannelUnarchivedEvent(msg);
-        break;
-
-    case SocketEvents.CHANNEL_CONVERTED:
-        handleChannelConvertedEvent(msg);
-        break;
-
-    case SocketEvents.CHANNEL_UPDATED:
-        dispatch(handleChannelUpdatedEvent(msg));
-        break;
-
-    case SocketEvents.CHANNEL_MEMBER_UPDATED:
-        handleChannelMemberUpdatedEvent(msg);
-        break;
-
-    case SocketEvents.DIRECT_ADDED:
-        dispatch(handleDirectAddedEvent(msg));
-        break;
-
-    case SocketEvents.GROUP_ADDED:
-        dispatch(handleGroupAddedEvent(msg));
-        break;
-
-    case SocketEvents.PREFERENCE_CHANGED:
-        handlePreferenceChangedEvent(msg);
-        break;
-
-    case SocketEvents.PREFERENCES_CHANGED:
-        handlePreferencesChangedEvent(msg);
-        break;
-
-    case SocketEvents.PREFERENCES_DELETED:
-        handlePreferencesDeletedEvent(msg);
-        break;
-
-    case SocketEvents.STATUS_CHANGED:
-        handleStatusChangedEvent(msg);
-        break;
-
-    case SocketEvents.HELLO:
-        handleHelloEvent(msg);
-        break;
-
-    case SocketEvents.REACTION_ADDED:
-        handleReactionAddedEvent(msg);
-        break;
-
-    case SocketEvents.REACTION_REMOVED:
-        handleReactionRemovedEvent(msg);
-        break;
-
-    case SocketEvents.EMOJI_ADDED:
-        handleAddEmoji(msg);
-        break;
-
-    case SocketEvents.CHANNEL_VIEWED:
-        handleChannelViewedEvent(msg);
-        break;
-
-    case SocketEvents.PLUGIN_ENABLED:
-        handlePluginEnabled(msg);
-        break;
-
-    case SocketEvents.PLUGIN_DISABLED:
-        handlePluginDisabled(msg);
-        break;
-
-    case SocketEvents.USER_ROLE_UPDATED:
-        handleUserRoleUpdated(msg);
-        break;
-
-    case SocketEvents.CONFIG_CHANGED:
-        handleConfigChanged(msg);
-        break;
-
-    case SocketEvents.LICENSE_CHANGED:
-        handleLicenseChanged(msg);
-        break;
-
-    case SocketEvents.PLUGIN_STATUSES_CHANGED:
-        handlePluginStatusesChangedEvent(msg);
-        break;
-
-    case SocketEvents.OPEN_DIALOG:
-        handleOpenDialogEvent(msg);
-        break;
-
-    case SocketEvents.RECEIVED_GROUP:
-        handleGroupUpdatedEvent(msg);
-        break;
-
-    case SocketEvents.GROUP_MEMBER_ADD:
-        dispatch(handleGroupAddedMemberEvent(msg));
-        break;
-
-    case SocketEvents.GROUP_MEMBER_DELETED:
-        dispatch(handleGroupDeletedMemberEvent(msg));
-        break;
-
-    case SocketEvents.RECEIVED_GROUP_ASSOCIATED_TO_TEAM:
-        handleGroupAssociatedToTeamEvent(msg);
-        break;
-
-    case SocketEvents.RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM:
-        handleGroupNotAssociatedToTeamEvent(msg);
-        break;
-
-    case SocketEvents.RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL:
-        handleGroupAssociatedToChannelEvent(msg);
-        break;
-
-    case SocketEvents.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL:
-        handleGroupNotAssociatedToChannelEvent(msg);
-        break;
-
-    case SocketEvents.WARN_METRIC_STATUS_RECEIVED:
-        handleWarnMetricStatusReceivedEvent(msg);
-        break;
-
-    case SocketEvents.WARN_METRIC_STATUS_REMOVED:
-        handleWarnMetricStatusRemovedEvent(msg);
-        break;
-
-    case SocketEvents.SIDEBAR_CATEGORY_CREATED:
-        dispatch(handleSidebarCategoryCreated(msg));
-        break;
-
-    case SocketEvents.SIDEBAR_CATEGORY_UPDATED:
-        dispatch(handleSidebarCategoryUpdated(msg));
-        break;
-
-    case SocketEvents.SIDEBAR_CATEGORY_DELETED:
-        dispatch(handleSidebarCategoryDeleted(msg));
-        break;
-    case SocketEvents.SIDEBAR_CATEGORY_ORDER_UPDATED:
-        dispatch(handleSidebarCategoryOrderUpdated(msg));
-        break;
-    case SocketEvents.USER_ACTIVATION_STATUS_CHANGED:
-        dispatch(handleUserActivationStatusChange());
-        break;
-    case SocketEvents.CLOUD_PAYMENT_STATUS_UPDATED:
-        dispatch(handleCloudPaymentStatusUpdated(msg));
-        break;
-    case SocketEvents.CLOUD_SUBSCRIPTION_CHANGED:
-        dispatch(handleCloudSubscriptionChanged(msg));
-        break;
-    case SocketEvents.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED:
-        handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg);
-        break;
-    case SocketEvents.THREAD_FOLLOW_CHANGED:
-        dispatch(handleThreadFollowChanged(msg));
-        break;
-    case SocketEvents.THREAD_READ_CHANGED:
-        dispatch(handleThreadReadChanged(msg));
-        break;
-    case SocketEvents.THREAD_UPDATED:
-        dispatch(handleThreadUpdated(msg));
-        break;
-    case SocketEvents.APPS_FRAMEWORK_REFRESH_BINDINGS:
-        dispatch(handleRefreshAppsBindings());
-        break;
-    case SocketEvents.APPS_FRAMEWORK_PLUGIN_ENABLED:
-        dispatch(handleAppsPluginEnabled());
-        break;
-    case SocketEvents.APPS_FRAMEWORK_PLUGIN_DISABLED:
-        dispatch(handleAppsPluginDisabled());
-        break;
-    case SocketEvents.POST_ACKNOWLEDGEMENT_ADDED:
-        dispatch(handlePostAcknowledgementAdded(msg));
-        break;
-    case SocketEvents.POST_ACKNOWLEDGEMENT_REMOVED:
-        dispatch(handlePostAcknowledgementRemoved(msg));
-        break;
-    case SocketEvents.DRAFT_CREATED:
-    case SocketEvents.DRAFT_UPDATED:
-        dispatch(handleUpsertDraftEvent(msg));
-        break;
-    case SocketEvents.DRAFT_DELETED:
-        dispatch(handleDeleteDraftEvent(msg));
-        break;
-    case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
-        dispatch(handleHostedCustomerSignupProgressUpdated(msg));
-        break;
-    default:
+    const handler = eventHandlers[msg.event];
+    if (handler) {
+        handler(msg);
     }
 
     Object.values(pluginEventHandlers).forEach((pluginEvents) => {
-        if (!pluginEvents) {
-            return;
-        }
-
-        if (pluginEvents.hasOwnProperty(msg.event) && typeof pluginEvents[msg.event] === 'function') {
+        if (pluginEvents?.[msg.event] && typeof pluginEvents[msg.event] === 'function') {
             pluginEvents[msg.event](msg);
         }
     });
 }
+
 
 // handleChannelConvertedEvent handles updating of channel which is converted from public to private
 function handleChannelConvertedEvent(msg) {

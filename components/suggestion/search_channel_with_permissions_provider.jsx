@@ -176,63 +176,65 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
     }
 
     formatChannelsAndDispatch(channelPrefix, resultsCallback, allChannels) {
-        const channels = [];
-
         const state = store.getState();
-
         const members = getMyChannelMemberships(state);
-
+        const config = getConfig(state);
+        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
+    
         if (this.shouldCancelDispatch(channelPrefix)) {
             return;
         }
-
+    
+        const channels = [];
         const completedChannels = {};
-
         const channelFilter = this.makeChannelSearchFilter(channelPrefix);
-
-        const config = getConfig(state);
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
-        for (const id of Object.keys(allChannels)) {
+    
+        Object.keys(allChannels).forEach((id) => {
             const channel = allChannels[id];
-            if (!channel) {
-                continue;
+            
+            if (!channel || completedChannels[channel.id] || !channelFilter(channel)) {
+                return;
             }
-
-            if (completedChannels[channel.id]) {
-                continue;
-            }
-
-            if (channelFilter(channel)) {
-                const newChannel = Object.assign({}, channel);
-                const channelIsArchived = channel.delete_at !== 0;
-
-                const wrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false};
-                if (!viewArchivedChannels && channelIsArchived) {
-                    continue;
-                } else if (!members[channel.id]) {
-                    continue;
-                } else if (channel.type === Constants.OPEN_CHANNEL) {
-                    wrappedChannel.type = Constants.OPEN_CHANNEL;
-                } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-                    wrappedChannel.type = Constants.PRIVATE_CHANNEL;
-                } else {
-                    continue;
-                }
+    
+            const newChannel = { ...channel };
+            const wrappedChannel = {
+                channel: newChannel,
+                name: newChannel.name,
+                deactivated: false,
+                type: this.getChannelType(channel, members, viewArchivedChannels)
+            };
+    
+            if (wrappedChannel.type) {
                 completedChannels[channel.id] = true;
                 channels.push(wrappedChannel);
             }
-        }
-
-        const channelNames = channels.
-            sort(channelSearchSorter).
-            map((wrappedChannel) => wrappedChannel.channel.name);
-
+        });
+    
+        const channelNames = channels
+            .sort(channelSearchSorter)
+            .map((wrappedChannel) => wrappedChannel.channel.name);
+        
         resultsCallback({
             matchedPretext: channelPrefix,
             terms: channelNames,
             items: channels,
             component: SearchChannelWithPermissionsSuggestion,
         });
+    }
+    
+    getChannelType(channel, members, viewArchivedChannels) {
+        if (channel.delete_at !== 0 && !viewArchivedChannels) {
+            return null;
+        }
+    
+        if (!members[channel.id]) {
+            return null;
+        }
+    
+        if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
+            return channel.type;
+        }
+    
+        return null;
     }
 }
